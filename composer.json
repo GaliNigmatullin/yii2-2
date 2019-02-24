@@ -39,5 +39,6 @@
             "type": "composer",
             "url": "https://asset-packagist.org"
         }
-    ]
+    ],
+    "guzzlehttp/guzzle": ">=4.1.4 <7.0"
 }
