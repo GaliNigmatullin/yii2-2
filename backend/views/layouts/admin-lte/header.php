@@ -107,6 +107,7 @@ use yii\helpers\Html;
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <img src="<?= $directoryAsset ?>/img/user2-160x160.jpg" class="user-image" alt="User Image"/>
                         <span class="hidden-xs"><?= Yii::$app->user->identity->username ?></span>
+                        <!--<span class="hidden-xs" id="nameUser"><?/*=Yii::$app->user->identity->username */?></span>-->
                     </a>
                     <ul class="dropdown-menu">
                         <!-- User image -->
