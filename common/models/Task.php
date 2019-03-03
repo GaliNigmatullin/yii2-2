@@ -24,18 +24,19 @@ use yii\behaviors\TimestampBehavior;
  * @property User $executor
  * @property User $creator
  * @property User $updater
+ * @property Project[] $project
  */
 class Task extends \yii\db\ActiveRecord
 {
+    const RELATION_PROJECT = 'project';
     public function behaviors()
     {
         return [
-            TimestampBehavior::class,
-            [
-                'class' => BlameableBehavior::class,
+            ['class' => TimestampBehavior::className()],
+            ['class' => BlameableBehavior::className(),
                 'createdByAttribute' => 'creator_id',
-                'updatedByAttribute' => 'updater_id',
-            ]
+                'updatedByAttribute' => 'updater_id'
+            ],
 
 
         ];
@@ -106,6 +107,13 @@ class Task extends \yii\db\ActiveRecord
     public function getUpdater()
     {
         return $this->hasOne(User::className(), ['id' => 'updater_id']);
+    }
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProject()
+    {
+        return $this->hasOne(Project::className(), ['id' => 'project_id']);
     }
 
     /**

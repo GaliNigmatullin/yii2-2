@@ -7,7 +7,7 @@ namespace common\models\query;
  *
  * @see \common\models\Task
  */
-class TaskrQuery extends \yii\db\ActiveQuery
+class TaskQuery extends \yii\db\ActiveQuery
 {
     /*public function active()
     {
