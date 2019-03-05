@@ -11,11 +11,19 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
+    'modules' => [
+        'api' => [
+            'class' => 'frontend\modules\api\Module',
+        ],
+    ],
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-frontend',
             'cookieValidationKey' => 'yYy4YYYX8lYyYyQOl8vOcO6ROo7i8twO',
             'baseUrl' => '',
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ],
         ],
         'user' => [
             'identityClass' => 'common\models\User',
@@ -41,8 +49,12 @@ return [
 
         'urlManager' => [
             'enablePrettyUrl' => true,
+            'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api/user'],
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api/task'],
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api/project'],
                 '' => 'site/index',
                 '<controller:\w+>/<action:\w+>/' => '<controller>/<action>',
             ],
