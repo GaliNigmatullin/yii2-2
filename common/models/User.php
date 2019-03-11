@@ -282,5 +282,8 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return $this->hasMany(Project::class, ['creator_id' => 'id']);
     }
+    public function findAllUsernames() {
+        return self::find()->select('username')->indexBy('id')->column();
+    }
 
 }
