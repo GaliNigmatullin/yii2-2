@@ -5,9 +5,9 @@ namespace frontend\modules\api\controllers;
 
 
 use frontend\modules\api\models\Task;
-use yii\rest\ActiveController;
+use yii\rest\Controller;
 
-class TaskControllerc extends ActiveController
+class TaskController extends Controller
 {
     public $modelClass = Task::class;
 }

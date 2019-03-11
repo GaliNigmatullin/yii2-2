@@ -19,18 +19,33 @@ use yii\web\IdentityInterface;
  * @property integer $status
  * @property integer $created_at
  * @property integer $updated_at
- * @property string $password write-only password
+ * @property string $password
  *
  * @property Task[] $activeTasks
  * @property Task[] $createdTasks
  * @property Task[] $updatedTasks
  * @property Project[] $createdProjects
  * @property Project[] $updatedProjects
+ *
+ * @mixin \mohorev\file\UploadImageBehavior::class
  */
 class User extends ActiveRecord implements IdentityInterface
 {
+    private $password;
+
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;
+
+    const STATUSES = [self::STATUS_DELETED, self::STATUS_ACTIVE];
+    const STATUS_LABELS = [
+        self::STATUS_DELETED => 'Deleted',
+        self::STATUS_ACTIVE => 'Active'
+    ];
+
+    const SCENARIO_INSERT = 'insert';
+    const SCENARIO_UPDATE = 'update';
+    const AVATAR_ICO = 'ico';
+    const AVATAR_PREVIEW = 'preview';
 
     const RELATION_ACTIVE_TASKS = 'activeTasks';
     const RELATION_CREATED_TASKS = 'createdTasks';
@@ -53,7 +68,20 @@ class User extends ActiveRecord implements IdentityInterface
     public function behaviors()
     {
         return [
-            TimestampBehavior::className(),
+            TimestampBehavior::class,
+            [
+                'class' => \mohorev\file\UploadImageBehavior::class,
+                'attribute' => 'avatar',
+                'scenarios' => [self::SCENARIO_UPDATE],
+                //'placeholder' => '@frontend/web/assets/img/cat.png',
+                'path' => '@frontend/upload/user/{id}',
+                'url' => Yii::$app->params['front.domain'] .
+                    Yii::getAlias('@web/upload/user/{id}'),
+                'thumbs' => [
+                    self::AVATAR_ICO => ['width' => 40, 'quality' => 90],
+                    self::AVATAR_PREVIEW => ['width' => 200, 'height' => 200],
+                ],
+            ],
         ];
     }
 
@@ -63,12 +91,19 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['username', 'email',  'password'], 'safe'],
-            [['avatar', 'auth_key', 'password_hash'], 'default', 'value' => '123456'],
+            [['username', 'email', 'password'], 'required', 'on' => self::SCENARIO_INSERT],
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            ['status', 'in', 'range' => self::STATUSES],
+            [['username', 'email', 'auth_key', 'password'], 'safe'],
+            [
+                'avatar',
+                'image',
+                'extensions' => 'jpg, jpeg, gif, png',
+                'on' => [self::SCENARIO_UPDATE]
+            ],
         ];
     }
+
 
     /**
      * {@inheritdoc}
@@ -168,13 +203,25 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Generates password hash from password and sets it to the model
-     *
      * @param string $password
-     */
+     * @throws \yii\base\Exception
+    */
     public function setPassword($password)
     {
-        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+       if ($password){
+           $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+           $this->generateAuthKey();
+       }
+        $this->password = $password;
+    }
+
+    /**
+     * Return password value
+     * @return string
+     */
+    public function getPassword()
+    {
+        return $this->password;
     }
 
     /**
@@ -205,35 +252,35 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getActiveTasks()
     {
-        return $this->hasMany(Task::class(), ['executor_id' => 'id']);
+        return $this->hasMany(Task::class, ['executor_id' => 'id']);
     }
     /**
      * @return \yii\db\ActiveQuery
      */
     public function getCreatedTasks()
     {
-        return $this->hasMany(Task::class(), ['creator_id' => 'id']);
+        return $this->hasMany(Task::class, ['creator_id' => 'id']);
     }
     /**
      * @return \yii\db\ActiveQuery
      */
     public function getUpdatedTasks()
     {
-        return $this->hasMany(Task::class(), ['updater_id' => 'id']);
+        return $this->hasMany(Task::class, ['updater_id' => 'id']);
     }
     /**
      * @return \yii\db\ActiveQuery
      */
     public function getUpdatedProjects()
     {
-        return $this->hasMany(Project::class(), ['updater_id' => 'id']);
+        return $this->hasMany(Project::class, ['updater_id' => 'id']);
     }
     /**
      * @return \yii\db\ActiveQuery
      */
     public function getCreatedProjects()
     {
-        return $this->hasMany(Project::class(), ['creator_id' => 'id']);
+        return $this->hasMany(Project::class, ['creator_id' => 'id']);
     }
 
 }

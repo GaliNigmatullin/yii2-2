@@ -9,7 +9,7 @@ class Task extends \common\models\Task
             'id',
             'title',
             'description_short' => function ($model) {
-                return substr($model->description, 0, 50);
+                return mb_substr($model->description, 0, 50);
             },
         ];
     }
