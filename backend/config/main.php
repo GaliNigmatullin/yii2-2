@@ -50,15 +50,28 @@ return [
             'errorAction' => 'site/error',
         ],
 
-        'urlManager' => [
+        /*'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
                 '' => 'site/index',
                 '<controller:\w+>/<action:\w+>/' => '<controller>/<action>',
             ],
+        ],*/
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api/user'],
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api/task'],
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api/project'],
+                '/' => 'site/index',
+                '<controller:\w+>s' => '<controller>/index',
+                '<controller:[\w-]+>/<id:\d+>' => '<controller>/view',
+                '<controller:[\w-]+>/<action:\w+>/<id:\d+>' => '<controller>/<action>',
+                '<action:\w+>' => 'site/<action>',
+            ],
         ],
-
     ],
     'params' => $params,
 ];
