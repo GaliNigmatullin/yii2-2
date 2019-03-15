@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use lhs\Yii2SaveRelationsBehavior\SaveRelationsBehavior;
 use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
@@ -26,15 +27,28 @@ use yii\behaviors\TimestampBehavior;
 class Project extends \yii\db\ActiveRecord
 {
     const RELATION_TASKS = 'tasks';
+    const RELATION_PROJECT_USERS = 'projectUsers';
+
+    const STATUS_COMPLETED = 0;
+    const STATUS_ACTIVE = 10;
+    const STATUSES = [self::STATUS_COMPLETED, self::STATUS_ACTIVE];
+    const STATUS_LABELS = [
+        self::STATUS_COMPLETED => 'Completed',
+        self::STATUS_ACTIVE => 'Active'
+    ];
 
     public function behaviors()
     {
         return [
-                 ['class' => TimestampBehavior::className()],
-                 ['class' => BlameableBehavior::className(),
-                     'createdByAttribute' => 'creator_id',
-                     'updatedByAttribute' => 'updater_id'
-                 ],
+            ['class' => TimestampBehavior::class],
+            ['class' => BlameableBehavior::class,
+                'createdByAttribute' => 'creator_id',
+                'updatedByAttribute' => 'updater_id'
+            ],
+            [
+                'class' => SaveRelationsBehavior::class,
+                'relations' => [self::RELATION_PROJECT_USERS]
+            ]
         ];
     }
     /**
