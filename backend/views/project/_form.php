@@ -42,7 +42,8 @@ use unclead\multipleinput\MultipleInput;
                         'name' => 'user_id',
                         'title' => 'User name',
                         'type' => 'dropDownList',
-                        'items' => (new common\models\User)->findAllUsernames(),
+                        /*'items' => (new common\models\User)->findAllUsernames(),*/
+                        'items' => $data,
                     ],
                     [
                         'name' => 'role',
