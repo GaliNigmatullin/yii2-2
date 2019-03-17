@@ -1,12 +1,11 @@
 <?php
-
 use yii\helpers\Html;
+use yii\helpers\ArrayHelper;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
 /* @var $this yii\web\View */
-/* @var $searchModel common\models\search\TaskSearch */
+/* @var $searchModel common\models\search\TaskSearchFrontend */
 /* @var $dataProvider yii\data\ActiveDataProvider */
-
 $this->title = 'Tasks';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
@@ -25,20 +24,113 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
-
-            'id',
+            //'id',
             'title',
-            'description:ntext',
-            'project_id',
-            'executor_id',
-            //'started_at',
-            //'completed_at',
-            //'creator_id',
+            [
+                'attribute' => 'description',
+                'value'=>  function ($model) {
+                    return mb_substr($model->description, 0, 50);
+                },
+            ],
+            [
+                'attribute'=>'creator',
+                'content'=>function($model){
+                    $creator = \common\models\User::findOne(['id' => $model->creator_id]);
+                    return Html::a($creator->username, 'user/' . $creator->id);
+                },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'creator_id',
+                    ArrayHelper::map(
+                        \common\models\User::find()->onlyActive()->all(),
+                        'id',
+                        'username'
+                    ),
+                    ['prompt' => '', 'class' => 'form-control form-control-sm']
+                ),
+            ],
+            [
+                'attribute'=>'executor',
+                'content'=>function($model){
+                    $executor = \common\models\User::findOne(['id' => $model->executor_id]);
+                    if ($executor){
+                        return Html::a($executor->username, 'user/' . $executor->id);
+                    }else{
+                        return null;
+                    }
+                },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'executor_id',
+                    ArrayHelper::map(
+                        \common\models\User::find()->onlyActive()->all(),
+                        'id',
+                        'username'
+                    ),
+                    ['prompt' => '', 'class' => 'form-control form-control-sm']
+                ),
+            ],
+            [
+                'attribute'=>'project title',
+                'content'=>function($model){
+                    $project = \common\models\Project::findOne(['id' => $model->project_id]);
+                    return Html::a($project->title, 'project/' . $project->id);
+                },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'project_id',
+                    ArrayHelper::map(\common\models\Project::find()
+                        ->byUser(Yii::$app->user->id)->all(), 'id', 'title'),
+                    ['prompt' => '', 'class' => 'form-control form-control-sm']
+                ),
+            ],
+            'started_at:datetime',
+            'completed_at:datetime',
             //'updater_id',
             //'created_at',
             //'updated_at',
-
-            ['class' => 'yii\grid\ActionColumn'],
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'template' => '{view} {update} {delete} {take} {finish}',
+                'buttons' => [
+                    'take' => function ( $url, \common\models\Task $model, $key) {
+                        $icon = \yii\bootstrap\Html::icon('glyphicon glyphicon-copy');
+                        return Html::a($icon, ['task/take', 'id' => $model->id], ['data' => [
+                            'confirm' => 'Do you want to take this task?',
+                            'method' => 'post',
+                        ]]);
+                    },
+                    'finish' => function ( $url, \common\models\Task $model, $key) {
+                        $icon = \yii\bootstrap\Html::icon('glyphicon glyphicon-saved');
+                        return Html::a($icon, ['task/complete', 'id' => $model->id], ['data' => [
+                            'confirm' => 'Do you want to finish this task?',
+                            'method' => 'post',
+                        ]]);
+                    }
+                ],
+                'visibleButtons' => [
+                    'update' => function (\common\models\Task $model) {
+                        return Yii::$app->taskService
+                            ->canManage(
+                                \common\models\Project::findOne($model->project_id),
+                                Yii::$app->user->identity
+                            );
+                    },
+                    'delete' => function (\common\models\Task $model) {
+                        return Yii::$app->taskService
+                            ->canManage(
+                                \common\models\Project::findOne($model->project_id),
+                                Yii::$app->user->identity
+                            );
+                    },
+                    'take' => function (\common\models\Task $model) {
+                        return Yii::$app->taskService->canTake($model, Yii::$app->user->identity);
+                    },
+                    'finish' => function (\common\models\Task $model) {
+                        return Yii::$app->taskService->canComplete($model, Yii::$app->user->identity);
+                    },
+                ],
+            ],
         ],
     ]); ?>
     <?php Pjax::end(); ?>
