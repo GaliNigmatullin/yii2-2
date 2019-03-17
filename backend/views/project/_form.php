@@ -52,9 +52,21 @@ use unclead\multipleinput\MultipleInput;
                         'items' => \common\models\ProjectUser::ROLE_LABELS,
                     ],
                 ],
+
             ]);
+
         ?>
     <?php endif; ?>
+
+
+
+   <!-- <?/*= $form->field($model, 'creator_id')->textInput() */?>
+
+    <?/*= $form->field($model, 'updater_id')->textInput() */?>
+
+    <?/*= $form->field($model, 'created_at')->textInput() */?>
+
+    --><?/*= $form->field($model, 'updated_at')->textInput() */?>
 
     <div class="row">
         <div class="col-md-2 col-md-offset-2">

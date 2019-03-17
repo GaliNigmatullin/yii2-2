@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\models\query\ProjectQuery;
 use common\models\User;
 use Yii;
 use common\models\Project;
@@ -48,6 +49,7 @@ class ProjectController extends Controller
     {
         $searchModel = new ProjectSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
 
         return $this->render('index', [
             'searchModel' => $searchModel,
