@@ -16,14 +16,18 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
+        <?php if(Yii::$app->taskService->canManage(\common\models\Project::findOne($model->project_id),
+            Yii::$app->user->identity)):?>
         <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
         <?= Html::a('Delete', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
+                'confirm' => 'Are you sure you want to delete this task?',
                 'method' => 'post',
             ],
         ]) ?>
+
+        <?php endif ?>
     </p>
 
     <?= DetailView::widget([
@@ -34,13 +38,16 @@ $this->params['breadcrumbs'][] = $this->title;
             'description:ntext',
             'project_id',
             'executor_id',
-            'started_at',
-            'completed_at',
+            'started_at:datetime',
+            'completed_at:datetime',
             'creator_id',
             'updater_id',
-            'created_at',
-            'updated_at',
+            'created_at:datetime',
+            'updated_at:datetime',
         ],
     ]) ?>
+    <?php echo \yii2mod\comments\widgets\Comment::widget([
+        'model' => $model,
+    ]); ?>
 
 </div>

@@ -2,9 +2,12 @@
 
 namespace backend\controllers;
 
+use common\models\query\ProjectQuery;
+use common\models\User;
 use Yii;
 use common\models\Project;
 use common\models\search\ProjectSearch;
+use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -21,9 +24,18 @@ class ProjectController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
+                ],
+            ],
+            'access' => [
+                'class' => AccessControl::class,
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
                 ],
             ],
         ];
@@ -37,6 +49,7 @@ class ProjectController extends Controller
     {
         $searchModel = new ProjectSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
 
         return $this->render('index', [
             'searchModel' => $searchModel,
@@ -86,12 +99,24 @@ class ProjectController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($this->loadModel($model) && $model->save()) {
+        $data = User::find()->select('username')->indexBy('id')->column();
+        $projectUsers = $model->getUsersData();
+
+        /*if ($this->loadModel($model) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
+        }*/
+        if ($this->loadModel($model) && $model->save()) {
+            if ($diffRoles = array_diff_assoc($model->getUsersData(), $projectUsers)) {
+                foreach ($diffRoles as $userId => $diffRole) {
+                    Yii::$app->projectService->assignRole($model, User::findOne($userId), $diffRole);
+                }
+            }
+            return $this->redirect(['view', 'id' => $model->id, 'data' => $data,]);
         }
 
         return $this->render('update', [
             'model' => $model,
+            'data' => $data,
         ]);
     }
 

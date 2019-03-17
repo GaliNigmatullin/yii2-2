@@ -17,12 +17,12 @@
                         'icon' => 'share',
                         'url' => '#',
                         'items' => [
-                            ['label' => 'Users', 'icon' => 'users', 'url' => ['/user'],],
-                            ['label' => 'Projects', 'icon' => 'list', 'url' => ['/project'],],
-                            ['label' => 'Tasks', 'icon' => 'tasks', 'url' => ['/task'],],
+                            ['label' => 'Users', 'icon' => 'users', 'url' => ['/users'],],
+                            ['label' => 'Projects', 'icon' => 'list', 'url' => ['/projects'],],
+                            ['label' => 'Tasks', 'icon' => 'tasks', 'url' => ['/tasks'],],
                         ],
                     ],
-                    [
+                    /*[
                         'label' => 'Some tools',
                         'icon' => 'share',
                         'url' => '#',
@@ -47,7 +47,7 @@
                                 ],
                             ],
                         ],
-                    ],
+                    ],*/
                 ],
             ]
         ) ?>

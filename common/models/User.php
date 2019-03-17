@@ -1,6 +1,7 @@
 <?php
 namespace common\models;
 
+use common\models\query\UserQuery;
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
@@ -286,4 +287,22 @@ class User extends ActiveRecord implements IdentityInterface
         return self::find()->select('username')->indexBy('id')->column();
     }
 
+    public function getAvatar()
+    {
+        return $this->getThumbUploadUrl('avatar',self::AVATAR_ICO);
+    }
+
+    public function getUsername()
+    {
+        return $this->username . '(' . $this->id . ')';
+    }
+
+    /**
+     * {@inheritdoc}
+     * @return \common\models\query\UserQuery the active query used by this AR class.
+     */
+    public static function find()
+    {
+        return new \common\models\query\UserQuery(get_called_class());
+    }
 }

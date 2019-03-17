@@ -2,9 +2,12 @@
 
 namespace frontend\controllers;
 
+use common\models\Project;
+use common\models\query\ProjectQuery;
 use Yii;
 use common\models\Task;
 use common\models\search\TaskSearch;
+use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -21,11 +24,21 @@ class TaskController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],
             ],
+            'access' => [
+                'class' => AccessControl::class,
+
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                ],
+            ]
         ];
     }
 
@@ -37,6 +50,12 @@ class TaskController extends Controller
     {
         $searchModel = new TaskSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        /**
+         * @var $query ProjectQuery
+         */
+        $query = $dataProvider->query;
+        $query->byUser(Yii::$app->user->id);
 
         return $this->render('index', [
             'searchModel' => $searchModel,
@@ -65,13 +84,16 @@ class TaskController extends Controller
     public function actionCreate()
     {
         $model = new Task();
+        $projects = Project::find()->select('title')->indexBy('id')->column();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', 'The task is create successfully');
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
         return $this->render('create', [
             'model' => $model,
+            'projects'=>$projects,
         ]);
     }
 
@@ -85,6 +107,7 @@ class TaskController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $projects = Project::find()->select('title')->indexBy('id')->column();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -92,6 +115,7 @@ class TaskController extends Controller
 
         return $this->render('update', [
             'model' => $model,
+            'projects'=>$projects,
         ]);
     }
 
@@ -105,6 +129,8 @@ class TaskController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
+
+        Yii::$app->session->setFlash('success', 'The task is delete successfully');
 
         return $this->redirect(['index']);
     }
@@ -123,5 +149,37 @@ class TaskController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    /**
+     * @param $id
+     * @return string|\yii\web\Response
+     * @throws NotFoundHttpException
+     */
+    public function actionTake($id)
+    {
+        $model = $this->findModel($id);
+        if (Yii::$app->taskService->takeTask($model,Yii::$app->user->identity)) {
+            Yii::$app->session->setFlash('success', 'Task: ' . $model->title . ' is taken in work');
+            return $this->redirect(['view', 'id' => $model->id]);
+        }
+        Yii::$app->session->setFlash('warning', "Something's wrong");
+        return $this->redirect(['task']);
+    }
+    /**
+     * @param $id
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException
+     */
+    public function actionComplete($id)
+    {
+        $model = $this->findModel($id);
+        if (Yii::$app->taskService->completeTask($model)) {
+            Yii::$app->session->setFlash('success', 'Task: ' . $model->title . ' completed successfully');
+            return $this->redirect(['view', 'id' => $model->id]);
+        }
+        Yii::$app->session->setFlash('warning', "Something's wrong");
+        return $this->redirect(['task']);
+
     }
 }
